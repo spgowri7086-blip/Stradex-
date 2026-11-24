@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a vehicle | StradeX</title>
+    <meta name="description" content="Send a StradeX booking request - choose your dates and see the total instantly.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header class="nav">
+    <a class="brand" href="/">Strade<span>X</span></a>
+    <nav><a href="/">Home</a><a href="/admin">Admin</a></nav>
+</header>
+
+<main class="form-wrap">
+    <a href="/#vehicles" class="back">&larr; Back to vehicles</a>
+    <div class="form-card">
+        <img th:if="${vehicle.imageUrl != null and !vehicle.imageUrl.isEmpty()}" th:src="${vehicle.imageUrl}" th:alt="${vehicle.name}" class="form-image">
+        <div class="form-body">
+            <p class="eyebrow">RESERVATION</p>
+            <h1>Book your ride</h1>
+            <p class="muted">
+                <span th:text="${vehicle.name}">Vehicle</span> &middot;
+                &#8377;<span th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 1, 'COMMA', 0, 'POINT')}">0</span> per day
+            </p>
+
+            <div class="notice error" th:unless="${vehicle.available}">This vehicle isn't available for booking right now.</div>
+            <div class="notice error" th:if="${error}" th:text="${error}"></div>
+
+            <form th:action="@{/book/{id}(id=${vehicle.id})}" method="post">
+                <label>Full name
+                    <input name="customerName" required maxlength="100" placeholder="Enter your name" th:value="${customerName}">
+                </label>
+                <label>Email address
+                    <input type="email" name="email" required maxlength="255" placeholder="you@example.com" th:value="${email}">
+                </label>
+                <div class="two">
+                    <label>Pickup date<input type="date" name="startDate" id="startDate" required></label>
+                    <label>Return date<input type="date" name="endDate" id="endDate" required></label>
+                </div>
+                <div class="total-box">
+                    <span id="totalLabel" class="muted">Estimated total</span>
+                    <strong id="totalValue">&#8377;0</strong>
+                </div>
+                <button class="btn btn-dark" type="submit" th:disabled="${!vehicle.available}">Submit booking request</button>
+            </form>
+            <p class="hint">Your booking will be marked as pending until an administrator confirms it.</p>
+        </div>
+    </div>
+</main>
+
+<footer>&copy; 2026 StradeX &middot; Vehicle Rental Management System</footer>
+
+<script th:inline="javascript">
+    const pricePerDay = /*[[${vehicle.pricePerDay}]]*/ 0;
+    const start = document.getElementById('startDate');
+    const end = document.getElementById('endDate');
+    const label = document.getElementById('totalLabel');
+    const value = document.getElementById('totalValue');
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const today = now.toISOString().split('T')[0];
+    start.min = today;
+    end.min = today;
+    const rupees = n => '\u20B9' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+    function updateTotal() {
+        if (start.value) end.min = start.value;
+        const days = start.value && end.value
+            ? Math.round((new Date(end.value) - new Date(start.value)) / 86400000) : 0;
+        if (days > 0) {
+            label.textContent = days + ' day' + (days === 1 ? '' : 's') + ' \u00D7 ' + rupees(pricePerDay);
+            value.textContent = rupees(days * pricePerDay);
+        } else {
+            label.textContent = 'Estimated total';
+            value.textContent = rupees(0);
+        }
+    }
+    start.addEventListener('change', updateTotal);
+    end.addEventListener('change', updateTotal);
+</script>
+</body>
+</html>

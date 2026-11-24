@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StradeX | Vehicle Rentals</title>
+    <meta name="description" content="Simple, reliable and convenient vehicle rentals with StradeX.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header class="nav">
+    <a class="brand" href="/">Strade<span>X</span></a>
+    <nav><a href="/">Home</a><a href="#vehicles">Vehicles</a><a href="/admin">Admin</a></nav>
+</header>
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">YOUR JOURNEY, YOUR WAY</p>
+        <h1>Find the right ride<br><span>for every journey.</span></h1>
+        <p class="sub">Simple, reliable and convenient vehicle rentals with StradeX.</p>
+        <a class="btn" href="#vehicles">Explore vehicles</a>
+    </div>
+    <div class="hero-art">STR<span>&#10022;</span>DEX<small>DRIVE YOUR WAY</small></div>
+</section>
+
+<main class="container" id="vehicles">
+    <div class="section-head">
+        <div><p class="eyebrow">OUR FLEET</p><h2>Available vehicles</h2></div>
+        <p>Choose a vehicle that fits your journey.</p>
+    </div>
+
+    <div th:if="${success}" class="notice" th:text="${success}"></div>
+    <div th:if="${#lists.isEmpty(vehicles)}" class="empty">No vehicles are listed yet. Please check back soon.</div>
+
+    <div class="grid">
+        <article class="vehicle" th:each="v : ${vehicles}">
+            <img th:if="${v.imageUrl != null and !v.imageUrl.isEmpty()}" th:src="${v.imageUrl}" th:alt="${v.name}" loading="lazy">
+            <div class="vehicle-placeholder" th:if="${v.imageUrl == null or v.imageUrl.isEmpty()}">STRADEX</div>
+            <div class="vehicle-info">
+                <span class="tag" th:text="${v.type}">Car</span>
+                <h3 th:text="${v.name}">Vehicle name</h3>
+                <p class="muted" th:text="${v.registrationNumber}">Registration</p>
+                <div class="price">&#8377;<span th:text="${#numbers.formatDecimal(v.pricePerDay, 1, 'COMMA', 0, 'POINT')}">0</span><small> / day</small></div>
+                <a class="btn btn-dark" th:href="@{/book/{id}(id=${v.id})}">Book now</a>
+            </div>
+        </article>
+    </div>
+</main>
+
+<footer>&copy; 2026 StradeX &middot; Vehicle Rental Management System</footer>
+</body>
+</html>

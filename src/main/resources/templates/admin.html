@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin dashboard | StradeX</title>
+    <meta name="description" content="Manage the StradeX fleet and review customer booking requests.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header class="nav">
+    <a class="brand" href="/">Strade<span>X</span></a>
+    <nav><a href="/">View website</a></nav>
+</header>
+
+<main class="container admin">
+    <p class="eyebrow">CONTROL PANEL</p>
+    <h1>Admin dashboard</h1>
+    <p class="muted">Manage your fleet and review customer booking requests.</p>
+
+    <div class="notice" th:if="${success}" th:text="${success}"></div>
+    <div class="notice error" th:if="${error}" th:text="${error}"></div>
+
+    <section class="panel">
+        <h2>Add a vehicle</h2>
+        <form class="admin-form" th:action="@{/admin/vehicles}" th:object="${newVehicle}" method="post">
+            <input th:field="*{name}" placeholder="Vehicle name" maxlength="100" required>
+            <input th:field="*{type}" placeholder="Type (Car/Bike)" maxlength="40" required>
+            <input th:field="*{registrationNumber}" placeholder="Registration number" maxlength="30" required>
+            <input type="number" min="0" step="0.01" name="pricePerDay" placeholder="Price per day (&#8377;)" required
+                   th:value="${newVehicle.pricePerDay > 0 ? newVehicle.pricePerDay : ''}">
+            <input th:field="*{imageUrl}" placeholder="Image URL (optional)" maxlength="1000">
+            <button class="btn btn-dark" type="submit">Add vehicle</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Vehicle inventory</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Vehicle</th><th>Type</th><th>Registration</th><th>Price/day</th><th>Action</th></tr></thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(vehicles)}"><td colspan="5" class="muted">No vehicles yet. Add your first one above.</td></tr>
+                <tr th:each="v : ${vehicles}">
+                    <td><strong th:text="${v.name}"></strong></td>
+                    <td th:text="${v.type}"></td>
+                    <td th:text="${v.registrationNumber}"></td>
+                    <td>&#8377;<span th:text="${#numbers.formatDecimal(v.pricePerDay, 1, 'COMMA', 0, 'POINT')}"></span></td>
+                    <td>
+                        <form th:action="@{/admin/vehicles/{id}/delete(id=${v.id})}" method="post">
+                            <button class="link-btn" type="submit"
+                                    onclick="return confirm('Delete this vehicle? Its bookings will be removed too.')">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Booking requests</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Customer</th><th>Vehicle</th><th>Dates</th><th>Total</th><th>Status</th><th>Update</th></tr></thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(bookings)}"><td colspan="6" class="muted">No booking requests yet.</td></tr>
+                <tr th:each="b : ${bookings}">
+                    <td><strong th:text="${b.customerName}"></strong><br><small class="muted" th:text="${b.email}"></small></td>
+                    <td th:text="${b.vehicle.name}"></td>
+                    <td><span th:text="${b.startDate}"></span> &ndash; <span th:text="${b.endDate}"></span></td>
+                    <td>&#8377;<span th:text="${#numbers.formatDecimal(b.totalAmount, 1, 'COMMA', 0, 'POINT')}"></span></td>
+                    <td><span class="status" th:classappend="${'status-' + #strings.toLowerCase(b.status)}" th:text="${b.status}"></span></td>
+                    <td>
+                        <form th:action="@{/admin/bookings/{id}/status(id=${b.id})}" method="post" class="inline-form">
+                            <select name="status" th:attr="aria-label=${'Status for ' + b.customerName}">
+                                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == b.status}"></option>
+                            </select>
+                            <button class="link-btn" type="submit">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>
